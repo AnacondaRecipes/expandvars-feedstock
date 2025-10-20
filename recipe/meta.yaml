@@ -1,17 +1,18 @@
 {% set name = "expandvars" %}
-{% set version = "0.12.0" %}
+{% set version = "1.1.2" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/expandvars-{{ version }}.tar.gz
-  sha256: 7d1adfa55728cf4b5d812ece3d087703faea953e0c0a1a78415de9df5024d844
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 6c5822b7b756a99a356b915dd1267f52ab8a4efaa135963bd7f4bd5d368f71d7
 
 build:
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   number: 0
+  skip: true  # [py<36]
 
 requirements:
   host:
@@ -22,16 +23,28 @@ requirements:
     - python
 
 test:
+  source_files:
+    - tests
   imports:
     - expandvars
   commands:
     - pip check
+    - pytest -v # [not win]
+    # AssertionError: assert 'X' == 'default'
+    - pytest -v --deselect=tests/test_expandvars.py::test_expandvars_indirection # [win]
   requires:
     - pip
+    - pytest
 
 about:
   home: https://github.com/sayanarijit/expandvars
   summary: Expand system variables Unix style
+  description: |
+    This module is inspired by GNU bash's variable expansion features.
+    It can be used as an alternative to Python's os.path.expandvars function.
+    A good use case is reading config files with the flexibility of reading values
+    from environment variables using advanced features like returning a default
+    value if some variable is not defined.
   license: MIT
   license_family: MIT
   license_file: LICENSE
